@@ -1,7 +1,7 @@
 import { CapsuleCollider, RigidBody } from "@react-three/rapier"
 import { Character } from "./Character"
 import { useEffect, useRef, useState } from "react"
-import { Vector3 } from "three"
+import { Vector3, Group } from "three"
 import { useFrame } from "@react-three/fiber"
 import { useControls } from "leva"
 import { useKeyboardControls } from "@react-three/drei"
@@ -34,17 +34,17 @@ export const CharacterController = () => {
     RUN_SPEED: { value: 2, min: 0.2, max: 12, step: 0.1 },
     ROTATION_SPEED: { value: degToRad(0.5), min: degToRad(0.5), max: degToRad(5), step: degToRad(0.5) }
   })
-  const rb = useRef()
-  const container = useRef()
+  const rb = useRef<any>(null)
+  const container = useRef<Group>(null)
 
   const [animation, setAnimation] = useState("idle");
 
   const characterRotationTarget = useRef(0)
   const rotationTarget = useRef(0)
 
-  const cameraTarget = useRef()
-  const cameraPosition = useRef()
-  const character = useRef()
+  const cameraTarget = useRef<Group>(null)
+  const cameraPosition = useRef<Group>(null)
+  const character = useRef<Group>(null)
   const cameraWorldPosition = useRef(new Vector3())
   const cameraLookAtWorldPosition = useRef(new Vector3())
   const cameraLookAt = useRef(new Vector3())
@@ -126,24 +126,30 @@ export const CharacterController = () => {
         setAnimation("idle")
       }
 
-      character.current.rotation.y = lerpAngle(
-        character.current.rotation.y,
-        characterRotationTarget.current,
-        0.1
-      )
+      if (character.current) {
+        character.current.rotation.y = lerpAngle(
+          character.current.rotation.y,
+          characterRotationTarget.current,
+          0.1
+        )
+      }
 
       rb.current.setLinvel(vel, true)
     }
 
     // CAMERA
-    container.current.rotation.y = MathUtils.lerp(
-      container.current.rotation.y,
-      rotationTarget.current,
-      0.1
-    )
+    if (container.current) {
+      container.current.rotation.y = MathUtils.lerp(
+        container.current.rotation.y,
+        rotationTarget.current,
+        0.1
+      )
+    }
 
-    cameraPosition.current.getWorldPosition(cameraWorldPosition.current)
-    camera.position.lerp(cameraWorldPosition.current, 0.1)
+    if (cameraPosition.current) {
+      cameraPosition.current.getWorldPosition(cameraWorldPosition.current)
+      camera.position.lerp(cameraWorldPosition.current, 0.1)
+    }
 
     if (cameraTarget.current) {
       cameraTarget.current.getWorldPosition(cameraLookAtWorldPosition.current)
